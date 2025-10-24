@@ -1,9 +1,10 @@
 ﻿using AuthorsWebAPI.Data;
 using AuthorsWebAPI.Models;
+using AuthorsWebAPI.Resources;
 
-namespace AuthorsWebAPI.Services
+namespace AuthorsWebAPI.Services.AuthorService
 {
-    public class AuthorService
+    public class AuthorService : IAuthorService
     {
         private readonly DataContainer _store;
         private int _nextId;
@@ -11,7 +12,7 @@ namespace AuthorsWebAPI.Services
         public AuthorService(DataContainer store)
         {
             _store = store;
-            _nextId = _store.authors.Any() ? _store.books.Max(b => b.Id) + 1 : 1;
+            _nextId = _store.authors.Any() ? _store.authors.Max(b => b.Id) + 1 : 1;
         }
 
         public IEnumerable<Authors> GetAll()
@@ -28,12 +29,12 @@ namespace AuthorsWebAPI.Services
         {
             if (string.IsNullOrWhiteSpace(author.Name))
             {
-                return (false, "Имя автора не указано.", null);
+                return (false, ValidationMessages.AuthorNameRequired, null);
             }
 
             if (author.DateOfBirth == default)
             {
-                return (false, "Дата рождения автора не указано.", null);
+                return (false, ValidationMessages.AuthorBirthRequired, null);
             }
 
 

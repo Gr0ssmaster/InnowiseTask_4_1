@@ -1,10 +1,11 @@
 ﻿using AuthorsWebAPI.Data;
 using AuthorsWebAPI.Models;
+using AuthorsWebAPI.Resources;
 using System.Data.SqlTypes;
 
-namespace AuthorsWebAPI.Services
+namespace AuthorsWebAPI.Services.BookService
 {
-    public class BookService
+    public class BookService : IBookService
     {
         private readonly DataContainer _store;
         private int _nextId;
@@ -26,11 +27,11 @@ namespace AuthorsWebAPI.Services
         public (bool Success, string? Error, Books? book) Add(Books book)
         {
             if (string.IsNullOrWhiteSpace(book.Title)) {
-                return (false, "Необходим заголовок.", null);
+                return (false, ValidationMessages.BookTitleRequired, null);
             }
             if(!_store.authors.Any(a => a.Id == book.AuthorId))
             {
-                return (false, "Автор с заданным Id не найден.", null); 
+                return (false, ValidationMessages.AuthorNotFound, null); 
             }
 
             book.Id = _nextId++;
@@ -41,7 +42,7 @@ namespace AuthorsWebAPI.Services
         public bool Update(int id, Books book)
         {
             var existing = GetById(id);
-            if (existing != null) {
+            if (existing == null) {
                 return false;
             }
 
@@ -57,7 +58,7 @@ namespace AuthorsWebAPI.Services
         }
         public bool Delete(int id) {
             var existing = GetById(id);
-            if (existing != null) {
+            if (existing == null) {
                 return false;
             }
 

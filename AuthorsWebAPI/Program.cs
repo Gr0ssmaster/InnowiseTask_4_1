@@ -1,12 +1,16 @@
 using AuthorsWebAPI.Data;
-using AuthorsWebAPI.Services;
+using AuthorsWebAPI.MIddleWare;
+using AuthorsWebAPI.Services.AuthorService;
+using AuthorsWebAPI.Services.BookService;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<DataContainer>();
-builder.Services.AddSingleton<AuthorService>();
-builder.Services.AddSingleton<BookService>();
+builder.Services.AddSingleton<IAuthorService, AuthorService>();
+builder.Services.AddSingleton<IBookService, BookService>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -21,6 +25,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

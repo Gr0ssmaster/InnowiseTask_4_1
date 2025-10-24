@@ -1,5 +1,5 @@
 ﻿using AuthorsWebAPI.Models;
-using AuthorsWebAPI.Services;
+using AuthorsWebAPI.Services.BookService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthorsWebAPI.Controllers
@@ -9,9 +9,9 @@ namespace AuthorsWebAPI.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly BookService _bookService;
+        private readonly IBookService _bookService;
 
-        public BooksController(BookService service)
+        public BooksController(IBookService service)
         {
             _bookService = service;
         }

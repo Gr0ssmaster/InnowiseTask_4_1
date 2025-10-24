@@ -1,5 +1,5 @@
 ﻿using AuthorsWebAPI.Models;
-using AuthorsWebAPI.Services;
+using AuthorsWebAPI.Services.AuthorService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +9,9 @@ namespace AuthorsWebAPI.Controllers
     [Route("api/[controller]")]
     public class AuthorsController : ControllerBase
     {
-        private readonly AuthorService _authorService;
+        private readonly IAuthorService _authorService;
 
-        public AuthorsController(AuthorService authorService)
+        public AuthorsController(IAuthorService authorService)
         {
             _authorService = authorService;
         }
