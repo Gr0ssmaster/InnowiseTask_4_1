@@ -4,10 +4,11 @@ namespace AuthorsWebAPI.Services.AuthorService
 {
     public interface IAuthorService
     {
-        IEnumerable<Authors> GetAll();
-        Authors? GetById(int id);
-        (bool Success, string? Error, Authors? author) Add(Authors author);
-        bool Update(int id, Authors author);
-        bool Delete(int id);
+        Task<IEnumerable<Authors>> GetAllAsync();
+        Task<Authors?> GetByIdAsync(int id);
+        Task<IEnumerable<Authors>> FindByNameAsync(string name);
+        Task<(bool Success, string? Error, Authors? author)> AddAsync(Authors author);
+        Task<bool> UpdateAsync(int id, Authors author);
+        Task<bool> DeleteAsync(int id);
     }
 }

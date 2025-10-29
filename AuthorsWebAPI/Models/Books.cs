@@ -6,5 +6,6 @@
         public string Title { get; set; }
         public int PublishedYear { get; set; }
         public int AuthorId {get; set;}
+        public Authors Author { get; set;}  
     }
 }

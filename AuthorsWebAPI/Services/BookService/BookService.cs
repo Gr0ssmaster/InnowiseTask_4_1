@@ -1,69 +1,60 @@
 ﻿using AuthorsWebAPI.Data;
 using AuthorsWebAPI.Models;
+using AuthorsWebAPI.Repositories.AuthorRepository;
+using AuthorsWebAPI.Repositories.BookRepository;
 using AuthorsWebAPI.Resources;
 using System.Data.SqlTypes;
+using System.Threading.Tasks;
 
 namespace AuthorsWebAPI.Services.BookService
 {
     public class BookService : IBookService
     {
-        private readonly DataContainer _store;
-        private int _nextId;
+        private readonly IBookRepository _bookRepository;
+        private readonly IAuthorRepository _authorRepository;
 
-        public BookService(DataContainer store)
+
+        public BookService(IBookRepository bookRepository, IAuthorRepository authorRepository)
         {
-            _store = store;
-            _nextId = _store.books.Any() ? _store.books.Max(b => b.Id) + 1 : 1;
+            _bookRepository = bookRepository;
+            _authorRepository = authorRepository;
         }
 
-        public IEnumerable<Books> GetAll()
-        {
-            return _store.books;
-        }
-        public Books? GetById(int id)
-        {
-            return _store.books.FirstOrDefault(b => b.Id == id);
-        }
-        public (bool Success, string? Error, Books? book) Add(Books book)
+        public async Task<IEnumerable<Books>> GetAllAsync() =>
+            await _bookRepository.GetAllAsync();
+        
+        public async Task<Books?> GetByIdAsync(int id) =>
+            await _bookRepository.GetByIdAsync(id);
+        public async Task<IEnumerable<Books>> GetBooksAfterYearAsync(int year) =>
+            await _bookRepository.GetBooksAfterYearAsync(year);
+        public async Task<(bool Success, string? Error, Books? book)> AddAsync(Books book)
         {
             if (string.IsNullOrWhiteSpace(book.Title)) {
                 return (false, ValidationMessages.BookTitleRequired, null);
             }
-            if(!_store.authors.Any(a => a.Id == book.AuthorId))
+            var exists = await _bookRepository.GetByIdAsync(book.AuthorId);
+            if(exists == null)
             {
                 return (false, ValidationMessages.AuthorNotFound, null); 
             }
 
-            book.Id = _nextId++;
-            _store.books.Add(book);
-            return (true, null, book);
+            var created = await _bookRepository.AddAsync(book);
+            return (true, null, created);
         }
 
-        public bool Update(int id, Books book)
+        public async Task<bool> UpdateAsync(int id, Books book)
         {
-            var existing = GetById(id);
+            var existing = await _bookRepository.GetByIdAsync(id);
             if (existing == null) {
                 return false;
             }
+            var authorExists = await _authorRepository.GetByIdAsync(book.AuthorId);
+            if (authorExists == null) return false;
 
-            if (!_store.authors.Any(a => a.Id == book.AuthorId))
-            {
-                return false;
-            }
-
-            existing.Title = book.Title;
-            existing.PublishedYear = book.PublishedYear;
-            existing.AuthorId = book.AuthorId;
-            return true;
+            book.Id = id;
+            return await _bookRepository.UpdateAsync(book);
         }
-        public bool Delete(int id) {
-            var existing = GetById(id);
-            if (existing == null) {
-                return false;
-            }
-
-            _store.books.Remove(existing);
-            return true;
-        }
+        public async Task<bool> DeleteAsync(int id) =>
+            await _bookRepository.DeleteAsync(id);
     }
 }

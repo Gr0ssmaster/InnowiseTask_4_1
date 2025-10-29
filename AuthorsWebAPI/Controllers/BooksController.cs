@@ -1,6 +1,8 @@
 ﻿using AuthorsWebAPI.Models;
+using AuthorsWebAPI.Repositories.BookRepository;
 using AuthorsWebAPI.Services.BookService;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace AuthorsWebAPI.Controllers
 {
@@ -10,49 +12,47 @@ namespace AuthorsWebAPI.Controllers
     public class BooksController : ControllerBase
     {
         private readonly IBookService _bookService;
-
-        public BooksController(IBookService service)
-        {
-            _bookService = service;
-        }
+        public BooksController(IBookService bookService) => _bookService = bookService;
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_bookService.GetAll());
+        public async Task<IActionResult> GetAll() => Ok(await _bookService.GetAllAsync());
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            var book = _bookService.GetById(id);
+            var book = await _bookService.GetByIdAsync(id);
             return book == null ? NotFound() : Ok(book);
         }
-
+        [HttpGet("after/{year}")]
+        public async Task<IActionResult> GetAfterYear(int year) {
+            var books = await _bookService.GetBooksAfterYearAsync(year);
+            return Ok(books);
+        }
         [HttpPost]
-        public IActionResult Create([FromBody] Books book)
+        public async Task<IActionResult> Create([FromBody] Books book)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var (Success, Error, Created) = await _bookService.AddAsync(book);
+            if(!Success) return BadRequest(new {error = Error});
 
-            var result = _bookService.Add(book);
-            if (!result.Success)
-                return BadRequest(new { error = result.Error });
-
-            return CreatedAtAction(nameof(Get), new { id = result.book!.Id }, result.book);
+            return CreatedAtAction(nameof(Get), new {id = Created!.Id}, Created);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Books book)
+        public async Task<IActionResult> Update(int id, [FromBody] Books book)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var success = _bookService.Update(id, book);
+            var success = await _bookService.UpdateAsync(id, book);
             return success ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var success = _bookService.Delete(id);
+            var success = await _bookService.DeleteAsync(id);
             return success ? NoContent() : NotFound();
         }
     }
